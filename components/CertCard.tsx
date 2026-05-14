@@ -29,7 +29,19 @@ type Props = {
   locked: boolean;
 };
 
+function daysUntil(dateStr: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(dateStr + "T00:00:00");
+  return Math.round((target.getTime() - today.getTime()) / 86_400_000);
+}
+
 export default function CertCard({ cert, entry, completionRate, locked }: Props) {
+  const days =
+    entry.targetDate && entry.status !== "passed"
+      ? daysUntil(entry.targetDate)
+      : null;
+
   return (
     <Link
       href={locked ? "#" : `/cert/${cert.id}`}
@@ -70,6 +82,16 @@ export default function CertCard({ cert, entry, completionRate, locked }: Props)
             />
           </div>
         </div>
+      )}
+
+      {days !== null && (
+        <p className={`mt-3 text-xs font-medium ${days < 0 ? "text-red-400" : days <= 7 ? "text-yellow-400" : "text-gray-400"}`}>
+          {days < 0
+            ? `Exam date passed ${Math.abs(days)}d ago`
+            : days === 0
+            ? "Exam today!"
+            : `${days} day${days === 1 ? "" : "s"} until exam`}
+        </p>
       )}
 
       {locked && (

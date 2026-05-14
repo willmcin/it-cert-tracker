@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import certs from "@/data/certs";
@@ -20,6 +20,12 @@ const RESOURCE_ICONS: Record<string, string> = {
   book: "📖",
 };
 
+function scoreColor(score: number) {
+  if (score >= 80) return "text-green-400";
+  if (score >= 65) return "text-yellow-400";
+  return "text-red-400";
+}
+
 export default function CertDetailPage({
   params,
 }: {
@@ -29,9 +35,26 @@ export default function CertDetailPage({
   const cert = certs.find((c) => c.id === id);
   if (!cert) notFound();
 
-  const { getEntry, updateEntry, setTopicDone, topicCompletionRate } = useCertProgress();
+  const { getEntry, updateEntry, setTopicDone, topicCompletionRate, addScore, removeScore } =
+    useCertProgress();
   const entry = getEntry(cert.id);
   const rate = topicCompletionRate(cert.id, cert.topics);
+
+  const [newScore, setNewScore] = useState("");
+  const [newDate, setNewDate] = useState(() => new Date().toISOString().slice(0, 10));
+
+  function handleAddScore() {
+    const val = parseInt(newScore, 10);
+    if (isNaN(val) || val < 0 || val > 100) return;
+    addScore(cert.id, { date: newDate, score: val });
+    setNewScore("");
+  }
+
+  const scores = entry.scoreLog ?? [];
+  const trend =
+    scores.length >= 2
+      ? scores[scores.length - 1].score - scores[0].score
+      : null;
 
   return (
     <div className="max-w-2xl">
@@ -104,6 +127,74 @@ export default function CertDetailPage({
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* Practice scores */}
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">
+            Practice Scores
+          </h2>
+          {trend !== null && (
+            <span className={`text-xs font-medium ${trend >= 0 ? "text-green-400" : "text-red-400"}`}>
+              {trend >= 0 ? "+" : ""}{trend}% from first attempt
+            </span>
+          )}
+        </div>
+
+        {scores.length > 0 && (
+          <table className="w-full text-sm mb-4">
+            <thead>
+              <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
+                <th className="text-left pb-2">Date</th>
+                <th className="text-left pb-2">Score</th>
+                <th className="pb-2" />
+              </tr>
+            </thead>
+            <tbody>
+              {scores.map((s, i) => (
+                <tr key={i} className="border-b border-gray-800/50">
+                  <td className="py-2 text-gray-400">{s.date}</td>
+                  <td className={`py-2 font-semibold ${scoreColor(s.score)}`}>{s.score}%</td>
+                  <td className="py-2 text-right">
+                    <button
+                      onClick={() => removeScore(cert.id, i)}
+                      className="text-gray-600 hover:text-red-400 transition-colors text-xs"
+                    >
+                      remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        <div className="flex gap-2 items-center flex-wrap">
+          <input
+            type="date"
+            value={newDate}
+            onChange={(e) => setNewDate(e.target.value)}
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
+          />
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={newScore}
+            onChange={(e) => setNewScore(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddScore()}
+            placeholder="Score %"
+            className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+          />
+          <button
+            onClick={handleAddScore}
+            disabled={!newScore}
+            className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Log score
+          </button>
+        </div>
       </section>
 
       {/* Target date */}

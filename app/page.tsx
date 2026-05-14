@@ -3,6 +3,7 @@
 import certs, { ROADMAP_ORDER } from "@/data/certs";
 import { useCertProgress } from "@/hooks/useCertProgress";
 import CertCard from "@/components/CertCard";
+import ExportImport from "@/components/ExportImport";
 
 export default function DashboardPage() {
   const { getEntry, topicCompletionRate, progress } = useCertProgress();
@@ -21,10 +22,15 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Cert Roadmap</h1>
-        <p className="text-gray-400">
-          {totalPassed} of {totalCerts} certifications earned
-        </p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Cert Roadmap</h1>
+            <p className="text-gray-400">
+              {totalPassed} of {totalCerts} certifications earned
+            </p>
+          </div>
+          <ExportImport />
+        </div>
         <div className="mt-3 w-full bg-gray-800 rounded-full h-2">
           <div
             className="bg-green-500 h-2 rounded-full transition-all"

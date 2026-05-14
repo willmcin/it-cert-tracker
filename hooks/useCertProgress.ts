@@ -4,12 +4,18 @@ import { useState, useEffect, useCallback } from "react";
 
 export type CertStatus = "not-started" | "in-progress" | "passed";
 
+export type ScoreEntry = {
+  date: string;
+  score: number;
+};
+
 export type CertEntry = {
   status: CertStatus;
   topicProgress: Record<string, boolean>;
   notes: string;
   targetDate?: string;
   passedDate?: string;
+  scoreLog?: ScoreEntry[];
 };
 
 export type ProgressMap = Record<string, CertEntry>;
@@ -73,6 +79,26 @@ export function useCertProgress() {
     []
   );
 
+  const addScore = useCallback((certId: string, score: ScoreEntry) => {
+    setProgress((prev) => {
+      const entry = prev[certId] ?? defaultEntry();
+      const scoreLog = [...(entry.scoreLog ?? []), score];
+      const updated = { ...prev, [certId]: { ...entry, scoreLog } };
+      save(updated);
+      return updated;
+    });
+  }, []);
+
+  const removeScore = useCallback((certId: string, index: number) => {
+    setProgress((prev) => {
+      const entry = prev[certId] ?? defaultEntry();
+      const scoreLog = (entry.scoreLog ?? []).filter((_, i) => i !== index);
+      const updated = { ...prev, [certId]: { ...entry, scoreLog } };
+      save(updated);
+      return updated;
+    });
+  }, []);
+
   const topicCompletionRate = useCallback(
     (certId: string, topics: string[]): number => {
       if (topics.length === 0) return 0;
@@ -84,5 +110,30 @@ export function useCertProgress() {
     [progress]
   );
 
-  return { progress, getEntry, updateEntry, setTopicDone, topicCompletionRate };
+  const exportData = useCallback((): string => {
+    return JSON.stringify(progress, null, 2);
+  }, [progress]);
+
+  const importData = useCallback((json: string): boolean => {
+    try {
+      const parsed = JSON.parse(json) as ProgressMap;
+      save(parsed);
+      setProgress(parsed);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  return {
+    progress,
+    getEntry,
+    updateEntry,
+    setTopicDone,
+    addScore,
+    removeScore,
+    topicCompletionRate,
+    exportData,
+    importData,
+  };
 }
