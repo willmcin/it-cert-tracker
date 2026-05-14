@@ -15,6 +15,7 @@ export type Cert = {
   topics: string[];
   resources: Resource[];
   examCode?: string;
+  validityYears?: number; // defaults to 3 if unset
 };
 
 const certs: Cert[] = [

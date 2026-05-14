@@ -36,10 +36,27 @@ function daysUntil(dateStr: string): number {
   return Math.round((target.getTime() - today.getTime()) / 86_400_000);
 }
 
+function expiryInfo(passedDate: string, validityYears: number) {
+  const expiry = new Date(passedDate + "T00:00:00");
+  expiry.setFullYear(expiry.getFullYear() + validityYears);
+  const daysLeft = daysUntil(expiry.toISOString().slice(0, 10));
+  const color =
+    daysLeft < 90 ? "text-red-400" : daysLeft < 365 ? "text-yellow-400" : "text-green-400";
+  const label =
+    daysLeft < 0
+      ? "Cert expired"
+      : `Renew by ${expiry.toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
+  return { color, label };
+}
+
 export default function CertCard({ cert, entry, completionRate, locked }: Props) {
   const days =
     entry.targetDate && entry.status !== "passed"
       ? daysUntil(entry.targetDate)
+      : null;
+  const expiry =
+    entry.status === "passed" && entry.passedDate
+      ? expiryInfo(entry.passedDate, cert.validityYears ?? 3)
       : null;
 
   return (
@@ -92,6 +109,10 @@ export default function CertCard({ cert, entry, completionRate, locked }: Props)
             ? "Exam today!"
             : `${days} day${days === 1 ? "" : "s"} until exam`}
         </p>
+      )}
+
+      {expiry && (
+        <p className={`mt-3 text-xs font-medium ${expiry.color}`}>{expiry.label}</p>
       )}
 
       {locked && (
