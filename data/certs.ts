@@ -15,7 +15,9 @@ export type Cert = {
   topics: string[];
   resources: Resource[];
   examCode?: string;
-  validityYears?: number; // defaults to 3 if unset
+  validityYears?: number;
+  maxScore: number;
+  passingScore: number;
 };
 
 const certs: Cert[] = [
@@ -25,6 +27,8 @@ const certs: Cert[] = [
     vendor: "CompTIA",
     abbreviation: "A+",
     examCode: "Core 1 (220-1101) & Core 2 (220-1102)",
+    maxScore: 900,
+    passingScore: 700,
     description:
       "Foundational IT certification covering hardware, networking, operating systems, and troubleshooting.",
     prerequisites: [],
@@ -66,6 +70,8 @@ const certs: Cert[] = [
     vendor: "CompTIA",
     abbreviation: "Net+",
     examCode: "N10-009",
+    maxScore: 900,
+    passingScore: 720,
     description:
       "Validates networking skills including infrastructure, operations, security, and troubleshooting.",
     prerequisites: ["comptia-aplus"],
@@ -103,6 +109,8 @@ const certs: Cert[] = [
     vendor: "CompTIA",
     abbreviation: "Sec+",
     examCode: "SY0-701",
+    maxScore: 900,
+    passingScore: 750,
     description:
       "Core cybersecurity certification covering threats, vulnerabilities, cryptography, and risk management.",
     prerequisites: ["comptia-netplus"],
@@ -140,6 +148,8 @@ const certs: Cert[] = [
     vendor: "Cisco",
     abbreviation: "CCNA",
     examCode: "200-301",
+    maxScore: 1000,
+    passingScore: 825,
     description:
       "Associate-level networking certification covering routing, switching, security fundamentals, and automation.",
     prerequisites: ["comptia-netplus"],
@@ -184,6 +194,8 @@ const certs: Cert[] = [
     vendor: "AWS",
     abbreviation: "CLF-C02",
     examCode: "CLF-C02",
+    maxScore: 1000,
+    passingScore: 700,
     description:
       "Entry-level AWS certification covering cloud concepts, services, security, and pricing.",
     prerequisites: [],
@@ -220,6 +232,8 @@ const certs: Cert[] = [
     vendor: "AWS",
     abbreviation: "SAA-C03",
     examCode: "SAA-C03",
+    maxScore: 1000,
+    passingScore: 720,
     description:
       "Validates ability to design resilient, high-performing, and cost-optimized AWS architectures.",
     prerequisites: ["aws-cloud-practitioner"],

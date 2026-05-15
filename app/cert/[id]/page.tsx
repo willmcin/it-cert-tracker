@@ -22,9 +22,11 @@ const RESOURCE_ICONS: Record<string, string> = {
   book: "📖",
 };
 
-function scoreColor(score: number) {
-  if (score >= 80) return "text-green-400";
-  if (score >= 65) return "text-yellow-400";
+function scoreColor(score: number, passingScore: number, maxScore: number) {
+  const pct = score / maxScore;
+  const passPct = passingScore / maxScore;
+  if (pct >= passPct) return "text-green-400";
+  if (pct >= passPct - 0.1) return "text-yellow-400";
   return "text-red-400";
 }
 
@@ -73,7 +75,7 @@ export default function CertDetailPage({
 
   function handleAddScore() {
     const val = parseInt(newScore, 10);
-    if (isNaN(val) || val < 0 || val > 100) return;
+    if (isNaN(val) || val < 0 || val > cert.maxScore) return;
     addScore(cert.id, { date: newDate, score: val });
     setNewScore("");
   }
@@ -220,38 +222,46 @@ export default function CertDetailPage({
           </h2>
           {trend !== null && (
             <span className={`text-xs font-medium ${trend >= 0 ? "text-green-400" : "text-red-400"}`}>
-              {trend >= 0 ? "+" : ""}{trend}% from first attempt
+              {trend >= 0 ? "+" : ""}{trend} pts from first attempt
             </span>
           )}
         </div>
 
-        {scores.length > 0 && (
-          <table className="w-full text-sm mb-4">
-            <thead>
-              <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
-                <th className="text-left pb-2">Date</th>
-                <th className="text-left pb-2">Score</th>
-                <th className="pb-2" />
+        <table className="w-full text-sm mb-4">
+          <thead>
+            <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
+              <th className="text-left pb-2">Date</th>
+              <th className="text-left pb-2">Score</th>
+              <th className="pb-2" />
+            </tr>
+          </thead>
+          <tbody>
+            {/* Pass threshold row */}
+            <tr className="border-b border-dashed border-red-900/60">
+              <td className="py-1.5 text-xs text-red-400/70 italic">Pass threshold</td>
+              <td className="py-1.5 text-xs font-semibold text-red-400/70">
+                {cert.passingScore} / {cert.maxScore}
+              </td>
+              <td />
+            </tr>
+            {scores.map((s, i) => (
+              <tr key={i} className="border-b border-gray-800/50">
+                <td className="py-2 text-gray-400">{s.date}</td>
+                <td className={`py-2 font-semibold ${scoreColor(s.score, cert.passingScore, cert.maxScore)}`}>
+                  {s.score} / {cert.maxScore}
+                </td>
+                <td className="py-2 text-right">
+                  <button
+                    onClick={() => removeScore(cert.id, i)}
+                    className="text-gray-600 hover:text-red-400 transition-colors text-xs"
+                  >
+                    remove
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {scores.map((s, i) => (
-                <tr key={i} className="border-b border-gray-800/50">
-                  <td className="py-2 text-gray-400">{s.date}</td>
-                  <td className={`py-2 font-semibold ${scoreColor(s.score)}`}>{s.score}%</td>
-                  <td className="py-2 text-right">
-                    <button
-                      onClick={() => removeScore(cert.id, i)}
-                      className="text-gray-600 hover:text-red-400 transition-colors text-xs"
-                    >
-                      remove
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+            ))}
+          </tbody>
+        </table>
 
         <div className="flex gap-2 items-center flex-wrap">
           <input
@@ -263,12 +273,12 @@ export default function CertDetailPage({
           <input
             type="number"
             min={0}
-            max={100}
+            max={cert.maxScore}
             value={newScore}
             onChange={(e) => setNewScore(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddScore()}
-            placeholder="Score %"
-            className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            placeholder={`Score / ${cert.maxScore}`}
+            className="w-32 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
           />
           <button
             onClick={handleAddScore}
