@@ -14,6 +14,12 @@ export type StudySession = {
   durationMinutes: number;
 };
 
+export type CustomCard = {
+  id: string;
+  question: string;
+  answer: string;
+};
+
 export type CertEntry = {
   status: CertStatus;
   topicProgress: Record<string, boolean>;
@@ -23,6 +29,8 @@ export type CertEntry = {
   passedDate?: string;
   scoreLog?: ScoreEntry[];
   sessions?: StudySession[];
+  customCards?: CustomCard[];
+  knownCards?: Record<string, boolean>;
 };
 
 export type ProgressMap = Record<string, CertEntry>;
@@ -162,6 +170,36 @@ export function useCertProgress() {
     [progress]
   );
 
+  const addCustomCard = useCallback((certId: string, card: CustomCard) => {
+    setProgress((prev) => {
+      const entry = prev[certId] ?? defaultEntry();
+      const customCards = [...(entry.customCards ?? []), card];
+      const updated = { ...prev, [certId]: { ...entry, customCards } };
+      save(updated);
+      return updated;
+    });
+  }, []);
+
+  const removeCustomCard = useCallback((certId: string, cardId: string) => {
+    setProgress((prev) => {
+      const entry = prev[certId] ?? defaultEntry();
+      const customCards = (entry.customCards ?? []).filter((c) => c.id !== cardId);
+      const updated = { ...prev, [certId]: { ...entry, customCards } };
+      save(updated);
+      return updated;
+    });
+  }, []);
+
+  const toggleKnownCard = useCallback((certId: string, cardId: string) => {
+    setProgress((prev) => {
+      const entry = prev[certId] ?? defaultEntry();
+      const knownCards = { ...entry.knownCards, [cardId]: !entry.knownCards?.[cardId] };
+      const updated = { ...prev, [certId]: { ...entry, knownCards } };
+      save(updated);
+      return updated;
+    });
+  }, []);
+
   const studyStreak = useCallback((): number => {
     const dates = new Set<string>();
     for (const entry of Object.values(progress)) {
@@ -212,6 +250,9 @@ export function useCertProgress() {
     addSession,
     topicCompletionRate,
     totalStudyMinutes,
+    addCustomCard,
+    removeCustomCard,
+    toggleKnownCard,
     studyStreak,
     exportData,
     importData,
