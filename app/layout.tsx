@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
+import NavLinks from "@/components/NavLinks";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"] });
@@ -8,6 +10,7 @@ const geist = Geist({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "IT Cert Tracker",
   description: "Personal IT certification roadmap and study tracker",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -22,15 +25,9 @@ export default function RootLayout({
           <Link href="/" className="text-xl font-bold text-white tracking-tight">
             IT Cert Tracker
           </Link>
-          <nav className="flex gap-6 text-sm text-gray-400">
-            <Link href="/" className="hover:text-white transition-colors">
-              Roadmap
-            </Link>
-            <Link href="/resources" className="hover:text-white transition-colors">
-              Resources
-            </Link>
-          </nav>
+          <NavLinks />
         </header>
+        <ServiceWorkerRegister />
         <main className="px-6 py-8 max-w-5xl mx-auto">{children}</main>
       </body>
     </html>

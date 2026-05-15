@@ -27,7 +27,15 @@ type Props = {
   entry: CertEntry;
   completionRate: number;
   locked: boolean;
+  studyMinutes: number;
 };
+
+function formatMinutes(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
 
 function daysUntil(dateStr: string): number {
   const today = new Date();
@@ -49,7 +57,7 @@ function expiryInfo(passedDate: string, validityYears: number) {
   return { color, label };
 }
 
-export default function CertCard({ cert, entry, completionRate, locked }: Props) {
+export default function CertCard({ cert, entry, completionRate, locked, studyMinutes }: Props) {
   const days =
     entry.targetDate && entry.status !== "passed"
       ? daysUntil(entry.targetDate)
@@ -99,6 +107,12 @@ export default function CertCard({ cert, entry, completionRate, locked }: Props)
             />
           </div>
         </div>
+      )}
+
+      {studyMinutes > 0 && (
+        <p className="mt-3 text-xs text-gray-500">
+          ⏱ {formatMinutes(studyMinutes)} studied
+        </p>
       )}
 
       {days !== null && (

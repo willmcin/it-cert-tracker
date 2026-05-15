@@ -162,6 +162,30 @@ export function useCertProgress() {
     [progress]
   );
 
+  const studyStreak = useCallback((): number => {
+    const dates = new Set<string>();
+    for (const entry of Object.values(progress)) {
+      for (const session of entry.sessions ?? []) {
+        dates.add(session.date);
+      }
+    }
+    if (dates.size === 0) return 0;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // start from today; if today has no session, allow streak to still be alive from yesterday
+    const startOffset = dates.has(today.toISOString().slice(0, 10)) ? 0 : 1;
+    let streak = 0;
+    for (let i = startOffset; ; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      if (!dates.has(d.toISOString().slice(0, 10))) break;
+      streak++;
+    }
+    return streak;
+  }, [progress]);
+
   const exportData = useCallback((): string => {
     return JSON.stringify(progress, null, 2);
   }, [progress]);
@@ -188,6 +212,7 @@ export function useCertProgress() {
     addSession,
     topicCompletionRate,
     totalStudyMinutes,
+    studyStreak,
     exportData,
     importData,
   };

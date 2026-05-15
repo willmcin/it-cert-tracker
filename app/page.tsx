@@ -6,7 +6,7 @@ import CertCard from "@/components/CertCard";
 import ExportImport from "@/components/ExportImport";
 
 export default function DashboardPage() {
-  const { getEntry, topicCompletionRate, progress } = useCertProgress();
+  const { getEntry, topicCompletionRate, totalStudyMinutes, studyStreak, progress } = useCertProgress();
 
   const orderedCerts = ROADMAP_ORDER.map((id) => certs.find((c) => c.id === id)!).filter(Boolean);
 
@@ -18,6 +18,10 @@ export default function DashboardPage() {
 
   const totalPassed = passedIds.size;
   const totalCerts = orderedCerts.length;
+  const allMinutes = orderedCerts.reduce((sum, c) => sum + totalStudyMinutes(c.id), 0);
+  const totalHours = Math.floor(allMinutes / 60);
+  const totalMins = allMinutes % 60;
+  const streak = studyStreak();
 
   return (
     <div>
@@ -27,9 +31,24 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-bold text-white mb-2">Cert Roadmap</h1>
             <p className="text-gray-400">
               {totalPassed} of {totalCerts} certifications earned
+              {allMinutes > 0 && (
+                <span className="ml-3 text-gray-500">
+                  · {totalHours > 0 ? `${totalHours}h ${totalMins > 0 ? `${totalMins}m` : ""}` : `${totalMins}m`} total study time
+                </span>
+              )}
             </p>
           </div>
-          <ExportImport />
+          <div className="flex items-center gap-4">
+            {streak > 0 && (
+              <div className="text-right">
+                <p className={`text-2xl font-bold ${streak >= 7 ? "text-orange-400" : "text-yellow-400"}`}>
+                  {streak} day{streak === 1 ? "" : "s"}
+                </p>
+                <p className="text-xs text-gray-500">study streak 🔥</p>
+              </div>
+            )}
+            <ExportImport />
+          </div>
         </div>
         <div className="mt-3 w-full bg-gray-800 rounded-full h-2">
           <div
@@ -44,6 +63,7 @@ export default function DashboardPage() {
           const entry = getEntry(cert.id);
           const rate = topicCompletionRate(cert.id, cert.topics);
           const locked = cert.prerequisites.some((pid) => !passedIds.has(pid));
+          const minutes = totalStudyMinutes(cert.id);
           return (
             <CertCard
               key={cert.id}
@@ -51,6 +71,7 @@ export default function DashboardPage() {
               entry={entry}
               completionRate={rate}
               locked={locked}
+              studyMinutes={minutes}
             />
           );
         })}

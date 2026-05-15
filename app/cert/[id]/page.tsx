@@ -7,6 +7,7 @@ import certs from "@/data/certs";
 import { useCertProgress } from "@/hooks/useCertProgress";
 import type { CertStatus } from "@/hooks/useCertProgress";
 import StudyTimer from "@/components/StudyTimer";
+import MarkdownNotes from "@/components/MarkdownNotes";
 
 const STATUS_OPTIONS: { value: CertStatus; label: string }[] = [
   { value: "not-started", label: "Not Started" },
@@ -48,8 +49,8 @@ export default function CertDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const cert = certs.find((c) => c.id === id);
-  if (!cert) notFound();
+  const cert = certs.find((c) => c.id === id)!;
+  if (!cert) return notFound();
 
   const {
     getEntry,
@@ -286,13 +287,9 @@ export default function CertDetailPage({
 
       {/* Notes */}
       <section className="mb-8">
-        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Notes</h2>
-        <textarea
+        <MarkdownNotes
           value={entry.notes}
-          onChange={(e) => updateEntry(cert.id, { notes: e.target.value })}
-          rows={4}
-          placeholder="Study notes, weak areas, reminders…"
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 resize-none"
+          onChange={(notes) => updateEntry(cert.id, { notes })}
         />
       </section>
 
