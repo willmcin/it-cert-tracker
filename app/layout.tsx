@@ -11,6 +11,14 @@ export const metadata: Metadata = {
   title: "IT Cert Tracker",
   description: "Personal IT certification roadmap and study tracker",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Cert Tracker",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

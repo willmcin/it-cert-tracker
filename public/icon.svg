@@ -1,8 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#030712"/>
-  <rect x="96" y="128" width="320" height="224" rx="16" fill="none" stroke="#3b82f6" stroke-width="24"/>
-  <line x1="152" y1="208" x2="360" y2="208" stroke="#6b7280" stroke-width="16" stroke-linecap="round"/>
-  <line x1="152" y1="256" x2="280" y2="256" stroke="#6b7280" stroke-width="16" stroke-linecap="round"/>
-  <circle cx="368" cy="352" r="72" fill="#030712" stroke="#22c55e" stroke-width="20"/>
-  <polyline points="336,352 356,372 400,328" fill="none" stroke="#22c55e" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#0f172a"/>
+
+  <!-- Certificate card -->
+  <rect x="80" y="100" width="280" height="220" rx="20" fill="#1e293b"/>
+  <rect x="80" y="100" width="280" height="220" rx="20" fill="none" stroke="#3b82f6" stroke-width="10"/>
+
+  <!-- Seal ribbon at top of card -->
+  <rect x="80" y="100" width="280" height="48" rx="20" fill="#2563eb"/>
+  <rect x="80" y="124" width="280" height="24" fill="#2563eb"/>
+
+  <!-- "CERT" label in ribbon -->
+  <text x="220" y="133" font-family="system-ui, sans-serif" font-size="22" font-weight="700" fill="white" text-anchor="middle" letter-spacing="6">CERT</text>
+
+  <!-- Text lines on certificate -->
+  <rect x="112" y="172" width="180" height="12" rx="6" fill="#475569"/>
+  <rect x="112" y="196" width="140" height="12" rx="6" fill="#475569"/>
+  <rect x="112" y="220" width="160" height="12" rx="6" fill="#334155"/>
+  <rect x="112" y="244" width="120" height="12" rx="6" fill="#334155"/>
+
+  <!-- Checkmark circle -->
+  <circle cx="352" cy="296" r="80" fill="#0f172a"/>
+  <circle cx="352" cy="296" r="72" fill="#166534"/>
+  <circle cx="352" cy="296" r="72" fill="none" stroke="#22c55e" stroke-width="8"/>
+
+  <!-- Checkmark -->
+  <polyline points="316,296 340,320 392,264" fill="none" stroke="#4ade80" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
