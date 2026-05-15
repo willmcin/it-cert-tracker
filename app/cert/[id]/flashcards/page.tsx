@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useMemo } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import certs from "@/data/certs";
@@ -21,6 +21,8 @@ export default function FlashcardsPage({ params }: { params: Promise<{ id: strin
 
   const [filter, setFilter] = useState<Filter>("all");
   const [cardIndex, setCardIndex] = useState(0);
+  const [shuffled, setShuffled] = useState(false);
+  const [shuffleSeed, setShuffleSeed] = useState(0);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newQ, setNewQ] = useState("");
   const [newA, setNewA] = useState("");
@@ -30,11 +32,24 @@ export default function FlashcardsPage({ params }: { params: Promise<{ id: strin
   const allCards = [...builtin, ...custom];
   const knownCards = entry.knownCards ?? {};
 
-  const filtered = allCards.filter((c) => {
-    if (filter === "known") return knownCards[c.id];
-    if (filter === "learning") return !knownCards[c.id];
-    return true;
-  });
+  const filtered = useMemo(() => {
+    const base = allCards.filter((c) => {
+      if (filter === "known") return knownCards[c.id];
+      if (filter === "learning") return !knownCards[c.id];
+      return true;
+    });
+    if (!shuffled) return base;
+    // seeded shuffle so it stays stable until re-shuffled
+    const arr = [...base];
+    let seed = shuffleSeed;
+    for (let i = arr.length - 1; i > 0; i--) {
+      seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+      const j = Math.abs(seed) % (i + 1);
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, shuffled, shuffleSeed, entry]);
 
   const knownCount = allCards.filter((c) => knownCards[c.id]).length;
   const current = filtered[Math.min(cardIndex, filtered.length - 1)];
@@ -81,9 +96,9 @@ export default function FlashcardsPage({ params }: { params: Promise<{ id: strin
         )}
       </div>
 
-      {/* Filter tabs */}
+      {/* Filter tabs + shuffle */}
       {allCards.length > 0 && (
-        <div className="flex gap-2 mb-8">
+        <div className="flex items-center gap-2 mb-8 flex-wrap">
           {(["all", "learning", "known"] as Filter[]).map((f) => (
             <button
               key={f}
@@ -97,6 +112,26 @@ export default function FlashcardsPage({ params }: { params: Promise<{ id: strin
               {f === "all" ? `All (${allCards.length})` : f === "learning" ? `Still learning (${allCards.length - knownCount})` : `Known (${knownCount})`}
             </button>
           ))}
+          <div className="ml-auto flex items-center gap-2">
+            {shuffled && (
+              <button
+                onClick={() => { setShuffleSeed((s) => s + 1); setCardIndex(0); }}
+                className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                Reshuffle
+              </button>
+            )}
+            <button
+              onClick={() => { setShuffled((s) => !s); setShuffleSeed((s) => s + 1); setCardIndex(0); }}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                shuffled
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+              }`}
+            >
+              ⇄ Shuffle
+            </button>
+          </div>
         </div>
       )}
 
