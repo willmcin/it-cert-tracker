@@ -1,37 +1,19 @@
 "use client";
 
-import { useState } from "react";
-
 type Props = {
   question: string;
   answer: string;
   known: boolean;
+  flipped: boolean;
   index: number;
   total: number;
+  onFlip: () => void;
   onKnown: () => void;
   onNext: () => void;
   onPrev: () => void;
 };
 
-export default function FlashCard({ question, answer, known, index, total, onKnown, onNext, onPrev }: Props) {
-  const [flipped, setFlipped] = useState(false);
-
-  function handleKnown() {
-    onKnown();
-    setFlipped(false);
-    onNext();
-  }
-
-  function handleNext() {
-    setFlipped(false);
-    onNext();
-  }
-
-  function handlePrev() {
-    setFlipped(false);
-    onPrev();
-  }
-
+export default function FlashCard({ question, answer, known, flipped, index, total, onFlip, onKnown, onNext, onPrev }: Props) {
   return (
     <div className="flex flex-col items-center gap-6">
       {/* Counter */}
@@ -44,7 +26,7 @@ export default function FlashCard({ question, answer, known, index, total, onKno
       <div
         className="w-full max-w-xl cursor-pointer"
         style={{ perspective: "1000px" }}
-        onClick={() => setFlipped((f) => !f)}
+        onClick={onFlip}
       >
         <div
           className="relative w-full transition-transform duration-500"
@@ -61,7 +43,7 @@ export default function FlashCard({ question, answer, known, index, total, onKno
           >
             <p className="text-xs text-blue-400 uppercase tracking-wider mb-4 font-semibold">Question</p>
             <p className="text-lg text-white text-center font-medium leading-relaxed">{question}</p>
-            <p className="mt-6 text-xs text-gray-500">Click to reveal answer</p>
+            <p className="mt-6 text-xs text-gray-500">Click or press Space to reveal</p>
           </div>
 
           {/* Back */}
@@ -78,14 +60,14 @@ export default function FlashCard({ question, answer, known, index, total, onKno
       {/* Controls */}
       <div className="flex items-center gap-3 flex-wrap justify-center">
         <button
-          onClick={handlePrev}
+          onClick={onPrev}
           className="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm hover:bg-gray-700 transition-colors"
         >
           ← Prev
         </button>
 
         <button
-          onClick={handleKnown}
+          onClick={onKnown}
           className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
             known
               ? "bg-gray-700 text-gray-400 hover:bg-gray-600"
@@ -96,11 +78,18 @@ export default function FlashCard({ question, answer, known, index, total, onKno
         </button>
 
         <button
-          onClick={handleNext}
+          onClick={onNext}
           className="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm hover:bg-gray-700 transition-colors"
         >
           Next →
         </button>
+      </div>
+
+      {/* Keyboard hints */}
+      <div className="flex gap-4 text-xs text-gray-600">
+        <span><kbd className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">Space</kbd> flip</span>
+        <span><kbd className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">←</kbd><kbd className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono ml-1">→</kbd> navigate</span>
+        <span><kbd className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">K</kbd> mark known</span>
       </div>
     </div>
   );

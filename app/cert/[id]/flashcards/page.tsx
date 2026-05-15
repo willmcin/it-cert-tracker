@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useMemo } from "react";
+import { use, useState, useMemo, useEffect, useCallback } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import certs from "@/data/certs";
@@ -21,6 +21,7 @@ export default function FlashcardsPage({ params }: { params: Promise<{ id: strin
 
   const [filter, setFilter] = useState<Filter>("all");
   const [cardIndex, setCardIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
   const [shuffled, setShuffled] = useState(false);
   const [shuffleSeed, setShuffleSeed] = useState(0);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -54,13 +55,35 @@ export default function FlashcardsPage({ params }: { params: Promise<{ id: strin
   const knownCount = allCards.filter((c) => knownCards[c.id]).length;
   const current = filtered[Math.min(cardIndex, filtered.length - 1)];
 
-  function goNext() {
+  const goNext = useCallback(() => {
+    setFlipped(false);
     setCardIndex((i) => (i + 1) % filtered.length);
-  }
+  }, [filtered.length]);
 
-  function goPrev() {
+  const goPrev = useCallback(() => {
+    setFlipped(false);
     setCardIndex((i) => (i - 1 + filtered.length) % filtered.length);
-  }
+  }, [filtered.length]);
+
+  const handleKnownAndNext = useCallback(() => {
+    if (!current) return;
+    toggleKnownCard(cert.id, current.id);
+    setFlipped(false);
+    setCardIndex((i) => (i + 1) % filtered.length);
+  }, [current, cert.id, filtered.length, toggleKnownCard]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (filtered.length === 0) return;
+      if (e.key === " " || e.code === "Space") { e.preventDefault(); setFlipped((f) => !f); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
+      else if (e.key === "k" || e.key === "K") { e.preventDefault(); handleKnownAndNext(); }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [filtered.length, goNext, goPrev, handleKnownAndNext]);
 
   function handleAddCard() {
     if (!newQ.trim() || !newA.trim()) return;
@@ -142,9 +165,11 @@ export default function FlashcardsPage({ params }: { params: Promise<{ id: strin
           question={current.question}
           answer={current.answer}
           known={!!knownCards[current.id]}
+          flipped={flipped}
           index={Math.min(cardIndex, filtered.length - 1)}
           total={filtered.length}
-          onKnown={() => toggleKnownCard(cert.id, current.id)}
+          onFlip={() => setFlipped((f) => !f)}
+          onKnown={handleKnownAndNext}
           onNext={goNext}
           onPrev={goPrev}
         />
