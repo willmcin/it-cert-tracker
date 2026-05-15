@@ -4,6 +4,7 @@ import certs, { ROADMAP_ORDER } from "@/data/certs";
 import { useCertProgress } from "@/hooks/useCertProgress";
 import CertCard from "@/components/CertCard";
 import ExportImport from "@/components/ExportImport";
+import StudyHeatmap from "@/components/StudyHeatmap";
 
 export default function DashboardPage() {
   const { getEntry, topicCompletionRate, totalStudyMinutes, studyStreak, progress } = useCertProgress();
@@ -22,6 +23,14 @@ export default function DashboardPage() {
   const totalHours = Math.floor(allMinutes / 60);
   const totalMins = allMinutes % 60;
   const streak = studyStreak();
+
+  // aggregate study minutes per calendar day across all certs
+  const minutesByDay: Record<string, number> = {};
+  for (const entry of Object.values(progress)) {
+    for (const session of entry.sessions ?? []) {
+      minutesByDay[session.date] = (minutesByDay[session.date] ?? 0) + session.durationMinutes;
+    }
+  }
 
   return (
     <div>
@@ -57,6 +66,8 @@ export default function DashboardPage() {
           />
         </div>
       </div>
+
+      <StudyHeatmap data={minutesByDay} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         {orderedCerts.map((cert) => {
