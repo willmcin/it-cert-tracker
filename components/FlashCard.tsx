@@ -17,9 +17,9 @@ export default function FlashCard({ question, answer, known, flipped, index, tot
   return (
     <div className="flex flex-col items-center gap-6">
       {/* Counter */}
-      <p className="text-sm text-gray-500">
-        {index + 1} / {total}
-        {known && <span className="ml-2 text-green-400 font-medium">✓ Known</span>}
+      <p className="eyebrow tabular-nums">
+        CARD {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+        {known && <span className="ml-2 text-go">● KNOWN</span>}
       </p>
 
       {/* Card */}
@@ -38,58 +38,45 @@ export default function FlashCard({ question, answer, known, flipped, index, tot
         >
           {/* Front */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center p-8 rounded-2xl bg-gray-800 border border-gray-700"
-            style={{ backfaceVisibility: "hidden" }}
+            className="panel panel-accent absolute inset-0 flex flex-col items-center justify-center p-8"
+            style={{ backfaceVisibility: "hidden", "--accent": "var(--color-amber)" } as React.CSSProperties}
           >
-            <p className="text-xs text-blue-400 uppercase tracking-wider mb-4 font-semibold">Question</p>
-            <p className="text-lg text-white text-center font-medium leading-relaxed">{question}</p>
-            <p className="mt-6 text-xs text-gray-500">Click or press Space to reveal</p>
+            <p className="eyebrow text-amber mb-4">▸ QUERY</p>
+            <p className="text-lg text-ink text-center font-medium leading-relaxed">{question}</p>
+            <p className="mt-6 eyebrow text-faint">Click or press Space to decrypt</p>
           </div>
 
           {/* Back */}
           <div
-            className="absolute inset-0 flex flex-col items-start justify-center p-8 rounded-2xl bg-gray-900 border border-blue-800"
-            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+            className="panel panel-accent absolute inset-0 flex flex-col items-start justify-center p-8"
+            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", "--accent": "var(--color-cyan)" } as React.CSSProperties}
           >
-            <p className="text-xs text-green-400 uppercase tracking-wider mb-4 font-semibold">Answer</p>
-            <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line">{answer}</p>
+            <p className="eyebrow text-cyan mb-4">▸ RESPONSE</p>
+            <p className="text-sm text-ink leading-relaxed whitespace-pre-line">{answer}</p>
           </div>
         </div>
       </div>
 
       {/* Controls */}
       <div className="flex items-center gap-3 flex-wrap justify-center">
-        <button
-          onClick={onPrev}
-          className="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm hover:bg-gray-700 transition-colors"
-        >
-          ← Prev
+        <button onClick={onPrev} className="btn">
+          ◂ Prev
         </button>
 
-        <button
-          onClick={onKnown}
-          className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
-            known
-              ? "bg-gray-700 text-gray-400 hover:bg-gray-600"
-              : "bg-green-700 text-white hover:bg-green-600"
-          }`}
-        >
-          {known ? "Unmark known" : "✓ Got it"}
+        <button onClick={onKnown} className={`btn ${known ? "" : "btn-go"}`}>
+          {known ? "Unmark known" : "● Got it"}
         </button>
 
-        <button
-          onClick={onNext}
-          className="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm hover:bg-gray-700 transition-colors"
-        >
-          Next →
+        <button onClick={onNext} className="btn">
+          Next ▸
         </button>
       </div>
 
       {/* Keyboard hints */}
-      <div className="flex gap-4 text-xs text-gray-600">
-        <span><kbd className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">Space</kbd> flip</span>
-        <span><kbd className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">←</kbd><kbd className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono ml-1">→</kbd> navigate</span>
-        <span><kbd className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">K</kbd> mark known</span>
+      <div className="flex gap-4 eyebrow">
+        <span><kbd className="px-1.5 py-0.5 bg-panel2 border border-line text-dim">Space</kbd> flip</span>
+        <span><kbd className="px-1.5 py-0.5 bg-panel2 border border-line text-dim">←</kbd><kbd className="px-1.5 py-0.5 bg-panel2 border border-line text-dim ml-1">→</kbd> nav</span>
+        <span><kbd className="px-1.5 py-0.5 bg-panel2 border border-line text-dim">K</kbd> known</span>
       </div>
     </div>
   );

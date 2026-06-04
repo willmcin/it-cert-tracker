@@ -32,17 +32,11 @@ export default function ExportImport() {
 
   return (
     <div className="flex gap-2">
-      <button
-        onClick={handleExport}
-        className="text-xs px-3 py-1.5 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-      >
-        Export backup
+      <button onClick={handleExport} className="btn !text-[10px] !py-1">
+        ⭳ Export
       </button>
-      <button
-        onClick={() => fileRef.current?.click()}
-        className="text-xs px-3 py-1.5 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-      >
-        Import backup
+      <button onClick={() => fileRef.current?.click()} className="btn !text-[10px] !py-1">
+        ⭱ Import
       </button>
       <input
         ref={fileRef}

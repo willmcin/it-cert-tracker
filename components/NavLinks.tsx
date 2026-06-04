@@ -13,15 +13,23 @@ export default function NavLinks() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-6 text-sm text-gray-400">
+    <nav className="flex gap-5 text-[11px] uppercase tracking-[0.18em]">
       {LINKS.map(({ href, label }) => {
         const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
         return (
           <Link
             key={href}
             href={href}
-            className={`transition-colors hover:text-white ${active ? "text-white font-medium" : ""}`}
+            className={`flex items-center gap-1.5 transition-colors hover:text-ink ${
+              active ? "text-cyan" : "text-dim"
+            }`}
           >
+            <span
+              className={active ? "text-cyan" : "text-faint"}
+              style={active ? { textShadow: "var(--glow-cyan)" } : undefined}
+            >
+              {active ? "▸" : "·"}
+            </span>
             {label}
           </Link>
         );

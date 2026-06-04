@@ -4,12 +4,14 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const WEEKS = 52;
 
+const RAMP = ["#152023", "#15403c", "#1f8a82", "#39e0d0", "#7fffb0"];
+
 function cellColor(minutes: number): string {
-  if (minutes === 0) return "bg-gray-800";
-  if (minutes < 20) return "bg-green-900";
-  if (minutes < 45) return "bg-green-700";
-  if (minutes < 90) return "bg-green-500";
-  return "bg-green-400";
+  if (minutes === 0) return RAMP[0];
+  if (minutes < 20) return RAMP[1];
+  if (minutes < 45) return RAMP[2];
+  if (minutes < 90) return RAMP[3];
+  return RAMP[4];
 }
 
 function buildGrid(): { date: string; label: string }[][] {
@@ -62,8 +64,8 @@ export default function StudyHeatmap({ data }: Props) {
   if (!hasAnyData) return null;
 
   return (
-    <div className="mb-8">
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Study Activity</h2>
+    <div className="panel mb-8 px-5 py-4">
+      <h2 className="eyebrow mb-3">STUDY ACTIVITY // 52-WEEK TELEMETRY</h2>
       <div className="overflow-x-auto">
         <div className="inline-block min-w-full">
           {/* Month labels */}
@@ -71,7 +73,7 @@ export default function StudyHeatmap({ data }: Props) {
             {monthLabels.map(({ col, label }) => (
               <div
                 key={`${col}-${label}`}
-                className="text-xs text-gray-500 absolute"
+                className="text-[10px] text-faint absolute uppercase tracking-wider"
                 style={{ marginLeft: `${col * 14}px` }}
               >
                 {label}
@@ -82,7 +84,7 @@ export default function StudyHeatmap({ data }: Props) {
               {monthLabels.map(({ col, label }) => (
                 <span
                   key={`${col}-${label}`}
-                  className="text-xs text-gray-500 absolute"
+                  className="text-[10px] text-faint absolute uppercase tracking-wider"
                   style={{ left: `${col * 14}px` }}
                 >
                   {label}
@@ -98,7 +100,7 @@ export default function StudyHeatmap({ data }: Props) {
               {DAYS.map((d, i) => (
                 <div
                   key={d}
-                  className="text-xs text-gray-600 flex items-center"
+                  className="text-[10px] text-faint flex items-center"
                   style={{ height: "12px", visibility: i % 2 === 1 ? "visible" : "hidden" }}
                 >
                   {d[0]}
@@ -115,7 +117,8 @@ export default function StudyHeatmap({ data }: Props) {
                     <div
                       key={date}
                       title={mins > 0 ? `${label}: ${mins}m studied` : label}
-                      className={`w-3 h-3 rounded-sm ${cellColor(mins)} cursor-default`}
+                      className="w-3 h-3 cursor-default"
+                      style={{ backgroundColor: cellColor(mins) }}
                     />
                   );
                 })}
@@ -125,11 +128,11 @@ export default function StudyHeatmap({ data }: Props) {
 
           {/* Legend */}
           <div className="flex items-center gap-1.5 mt-2 justify-end">
-            <span className="text-xs text-gray-600">Less</span>
-            {["bg-gray-800", "bg-green-900", "bg-green-700", "bg-green-500", "bg-green-400"].map((c) => (
-              <div key={c} className={`w-3 h-3 rounded-sm ${c}`} />
+            <span className="text-[10px] text-faint uppercase tracking-wider">Less</span>
+            {RAMP.map((c) => (
+              <div key={c} className="w-3 h-3" style={{ backgroundColor: c }} />
             ))}
-            <span className="text-xs text-gray-600">More</span>
+            <span className="text-[10px] text-faint uppercase tracking-wider">More</span>
           </div>
         </div>
       </div>

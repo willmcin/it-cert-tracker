@@ -14,12 +14,12 @@ export default function MarkdownNotes({ value, onChange }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Notes</h2>
-        <div className="flex rounded-lg overflow-hidden border border-gray-700 text-xs">
+        <h2 className="eyebrow">LOG // NOTES</h2>
+        <div className="flex overflow-hidden border border-line text-[11px] uppercase tracking-wider">
           <button
             onClick={() => setEditing(true)}
             className={`px-3 py-1 transition-colors ${
-              editing ? "bg-gray-700 text-white" : "bg-transparent text-gray-500 hover:text-gray-300"
+              editing ? "bg-cyan text-bg font-medium" : "bg-transparent text-dim hover:text-ink"
             }`}
           >
             Edit
@@ -27,7 +27,7 @@ export default function MarkdownNotes({ value, onChange }: Props) {
           <button
             onClick={() => setEditing(false)}
             className={`px-3 py-1 transition-colors ${
-              !editing ? "bg-gray-700 text-white" : "bg-transparent text-gray-500 hover:text-gray-300"
+              !editing ? "bg-cyan text-bg font-medium" : "bg-transparent text-dim hover:text-ink"
             }`}
           >
             Preview
@@ -41,27 +41,27 @@ export default function MarkdownNotes({ value, onChange }: Props) {
           onChange={(e) => onChange(e.target.value)}
           rows={6}
           placeholder="Study notes, weak areas, reminders… (supports **markdown**)"
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 resize-none font-mono"
+          className="field w-full resize-none"
         />
       ) : value ? (
-        <div className="prose prose-invert prose-sm max-w-none bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 min-h-[6rem]
-          prose-headings:text-gray-100
-          prose-p:text-gray-300
-          prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
-          prose-strong:text-gray-100
-          prose-code:text-blue-300 prose-code:bg-gray-900 prose-code:px-1 prose-code:rounded
-          prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700
-          prose-ul:text-gray-300 prose-ol:text-gray-300
-          prose-li:marker:text-gray-500
-          prose-blockquote:border-gray-600 prose-blockquote:text-gray-400">
+        <div className="prose prose-invert prose-sm max-w-none panel px-4 py-3 min-h-[6rem]
+          prose-headings:text-ink prose-headings:font-display
+          prose-p:text-dim
+          prose-a:text-cyan prose-a:no-underline hover:prose-a:underline
+          prose-strong:text-ink
+          prose-code:text-amber prose-code:bg-panel2 prose-code:px-1
+          prose-pre:bg-panel2 prose-pre:border prose-pre:border-line
+          prose-ul:text-dim prose-ol:text-dim
+          prose-li:marker:text-cyan-dim
+          prose-blockquote:border-cyan-dim prose-blockquote:text-dim">
           <ReactMarkdown>{value}</ReactMarkdown>
         </div>
       ) : (
         <button
           onClick={() => setEditing(true)}
-          className="w-full min-h-[6rem] bg-gray-800 border border-gray-700 border-dashed rounded-lg text-sm text-gray-600 hover:text-gray-400 hover:border-gray-500 transition-colors flex items-center justify-center"
+          className="w-full min-h-[6rem] panel border-dashed text-[11px] uppercase tracking-wider text-faint hover:text-dim hover:border-cyan-dim transition-colors flex items-center justify-center"
         >
-          Click to add notes
+          ⊕ Click to add log entry
         </button>
       )}
     </div>

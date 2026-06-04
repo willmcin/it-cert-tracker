@@ -32,58 +32,72 @@ export default function DashboardPage() {
     }
   }
 
+  const fleetReadiness = Math.round((totalPassed / totalCerts) * 100);
+
   return (
     <div>
-      <div className="mb-8">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+      <section className="panel relative mb-8 px-6 py-7">
+        <span className="tick tick-tl" />
+        <span className="tick tick-tr" />
+        <div className="flex items-end justify-between gap-6 flex-wrap">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Cert Roadmap</h1>
-            <p className="text-gray-400">
-              {totalPassed} of {totalCerts} certifications earned
+            <p className="eyebrow mb-2">CERTIFICATION // MISSION CONTROL</p>
+            <h1 className="font-display text-2xl sm:text-3xl text-ink leading-tight">
+              FLEET <span className="text-amber" style={{ textShadow: "var(--glow-amber)" }}>OVERVIEW</span>
+            </h1>
+            <p className="text-[12px] text-dim mt-2.5 tracking-wide">
+              {totalPassed} OF {totalCerts} MISSIONS COMPLETE
               {allMinutes > 0 && (
-                <span className="ml-3 text-gray-500">
-                  · {totalHours > 0 ? `${totalHours}h ${totalMins > 0 ? `${totalMins}m` : ""}` : `${totalMins}m`} total study time
+                <span className="ml-2 text-faint">
+                  · {totalHours > 0 ? `${totalHours}H ${totalMins > 0 ? `${totalMins}M` : ""}` : `${totalMins}M`} ON CONSOLE
                 </span>
               )}
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {streak > 0 && (
-              <div className="text-right">
-                <p className={`text-2xl font-bold ${streak >= 7 ? "text-orange-400" : "text-yellow-400"}`}>
-                  {streak} day{streak === 1 ? "" : "s"}
+              <div className="text-right border-r border-line pr-6">
+                <p className="font-display text-2xl text-amber" style={{ textShadow: "var(--glow-amber)" }}>
+                  {streak}
                 </p>
-                <p className="text-xs text-gray-500">study streak 🔥</p>
+                <p className="eyebrow mt-1">DAY STREAK{streak >= 7 ? " ◆" : ""}</p>
               </div>
             )}
-            <ExportImport />
+            <div className="text-right">
+              <p className="font-display text-3xl text-cyan" style={{ textShadow: "var(--glow-cyan)" }}>
+                {String(fleetReadiness).padStart(2, "0")}%
+              </p>
+              <p className="eyebrow mt-1">FLEET READY</p>
+            </div>
           </div>
         </div>
-        <div className="mt-3 w-full bg-gray-800 rounded-full h-2">
-          <div
-            className="bg-green-500 h-2 rounded-full transition-all"
-            style={{ width: `${Math.round((totalPassed / totalCerts) * 100)}%` }}
-          />
+        <div className="bar mt-5">
+          <i style={{ width: `${fleetReadiness}%`, "--accent": "var(--color-go)" } as React.CSSProperties} />
         </div>
-      </div>
+        <div className="mt-5 flex justify-end">
+          <ExportImport />
+        </div>
+      </section>
 
       <StudyHeatmap data={minutesByDay} />
 
+      <p className="eyebrow mb-3 mt-2">ACTIVE MISSIONS // {totalCerts} TRACKED</p>
       <div className="grid gap-4 sm:grid-cols-2">
-        {orderedCerts.map((cert) => {
+        {orderedCerts.map((cert, i) => {
           const entry = getEntry(cert.id);
           const rate = topicCompletionRate(cert.id, cert.topics);
-          const locked = cert.prerequisites.some((pid) => !passedIds.has(pid));
+          const prereqsMet = cert.prerequisites.every((pid) => passedIds.has(pid));
           const minutes = totalStudyMinutes(cert.id);
           return (
-            <CertCard
-              key={cert.id}
-              cert={cert}
-              entry={entry}
-              completionRate={rate}
-              locked={locked}
-              studyMinutes={minutes}
-            />
+            <div key={cert.id} className="mc-rise" style={{ animationDelay: `${i * 70}ms` }}>
+              <CertCard
+                cert={cert}
+                entry={entry}
+                completionRate={rate}
+                prereqsMet={prereqsMet}
+                studyMinutes={minutes}
+              />
+            </div>
           );
         })}
       </div>

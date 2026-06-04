@@ -2,14 +2,8 @@
 
 import Link from "next/link";
 import certs, { ROADMAP_ORDER } from "@/data/certs";
-import type { Cert } from "@/data/certs";
 import { useCertProgress } from "@/hooks/useCertProgress";
-
-const VENDOR_COLORS: Record<Cert["vendor"], string> = {
-  CompTIA: "text-red-400",
-  Cisco: "text-blue-400",
-  AWS: "text-orange-400",
-};
+import { VENDOR_TEXT } from "@/lib/theme";
 
 export default function WeakTopicsPage() {
   const { getEntry } = useCertProgress();
@@ -28,11 +22,12 @@ export default function WeakTopicsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-white mb-2">Weak Topics</h1>
-      <p className="text-gray-400 mb-8">
+      <p className="eyebrow mb-1.5">ANOMALY REPORT</p>
+      <h1 className="font-display text-2xl text-ink mb-2">WEAK TOPICS</h1>
+      <p className="text-[12px] text-dim uppercase tracking-wide mb-8 leading-relaxed">
         {totalWeak > 0
-          ? `${totalWeak} flagged topic${totalWeak === 1 ? "" : "s"} across ${sections.length} cert${sections.length === 1 ? "" : "s"} — drill these before exam day.`
-          : "No weak topics flagged yet. Use the ⚑ button on a cert's topic list to flag areas you're struggling with."}
+          ? `${totalWeak} flagged subsystem${totalWeak === 1 ? "" : "s"} across ${sections.length} mission${sections.length === 1 ? "" : "s"} — drill these before launch.`
+          : "No anomalies flagged. Use the ⚑ button on a cert's system-check list to flag areas you're struggling with."}
       </p>
 
       {sections.length > 0 && (
@@ -40,27 +35,26 @@ export default function WeakTopicsPage() {
           {sections.map(({ cert, weak }) => (
             <section key={cert.id}>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-white">
-                  <span className={`mr-2 text-sm font-normal ${VENDOR_COLORS[cert.vendor]}`}>
-                    {cert.vendor}
-                  </span>
+                <h2 className="font-display text-base text-ink flex items-center gap-2">
+                  <span className={`eyebrow ${VENDOR_TEXT[cert.vendor]}`}>{cert.vendor}</span>
                   {cert.name}
                 </h2>
                 <Link
                   href={`/cert/${cert.id}`}
-                  className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                  className="eyebrow hover:text-ink transition-colors"
                 >
-                  Go to cert →
+                  Go to mission ▸
                 </Link>
               </div>
               <ul className="space-y-2">
                 {weak.map((topic) => (
                   <li
                     key={topic}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-800 border border-orange-900/40"
+                    className="panel panel-accent flex items-center gap-3 px-4 py-3"
+                    style={{ "--accent": "var(--color-amber)" } as React.CSSProperties}
                   >
-                    <span className="text-orange-400 text-sm shrink-0">⚑</span>
-                    <span className="text-sm text-orange-200">{topic}</span>
+                    <span className="text-amber text-sm shrink-0">⚑</span>
+                    <span className="text-[13px] text-amber">{topic}</span>
                   </li>
                 ))}
               </ul>

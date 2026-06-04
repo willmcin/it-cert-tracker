@@ -8,6 +8,7 @@ import { useCertProgress } from "@/hooks/useCertProgress";
 import type { CertStatus } from "@/hooks/useCertProgress";
 import StudyTimer from "@/components/StudyTimer";
 import MarkdownNotes from "@/components/MarkdownNotes";
+import { VENDOR_ACCENT } from "@/lib/theme";
 
 const STATUS_OPTIONS: { value: CertStatus; label: string }[] = [
   { value: "not-started", label: "Not Started" },
@@ -17,17 +18,17 @@ const STATUS_OPTIONS: { value: CertStatus; label: string }[] = [
 
 const RESOURCE_ICONS: Record<string, string> = {
   video: "▶",
-  docs: "📄",
+  docs: "▤",
   practice: "✎",
-  book: "📖",
+  book: "❑",
 };
 
 function scoreColor(score: number, passingScore: number, maxScore: number) {
   const pct = score / maxScore;
   const passPct = passingScore / maxScore;
-  if (pct >= passPct) return "text-green-400";
-  if (pct >= passPct - 0.1) return "text-yellow-400";
-  return "text-red-400";
+  if (pct >= passPct) return "text-go";
+  if (pct >= passPct - 0.1) return "text-amber";
+  return "text-alert";
 }
 
 function expiryDetails(passedDate: string, validityYears: number) {
@@ -37,7 +38,7 @@ function expiryDetails(passedDate: string, validityYears: number) {
   today.setHours(0, 0, 0, 0);
   const daysLeft = Math.round((expiry.getTime() - today.getTime()) / 86_400_000);
   const color =
-    daysLeft < 90 ? "text-red-400" : daysLeft < 365 ? "text-yellow-400" : "text-green-400";
+    daysLeft < 90 ? "text-alert" : daysLeft < 365 ? "text-amber" : "text-go";
   return {
     date: expiry.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
     daysLeft,
@@ -51,8 +52,7 @@ export default function CertDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const cert = certs.find((c) => c.id === id)!;
-  if (!cert) return notFound();
+  const cert = certs.find((c) => c.id === id);
 
   const {
     getEntry,
@@ -66,19 +66,21 @@ export default function CertDetailPage({
     totalStudyMinutes,
   } = useCertProgress();
 
+  const [newScore, setNewScore] = useState("");
+  const [newDate, setNewDate] = useState(() => new Date().toISOString().slice(0, 10));
+
+  if (!cert) return notFound();
+
   const entry = getEntry(cert.id);
   const rate = topicCompletionRate(cert.id, cert.topics);
   const studyMinutes = totalStudyMinutes(cert.id);
 
-  const [newScore, setNewScore] = useState("");
-  const [newDate, setNewDate] = useState(() => new Date().toISOString().slice(0, 10));
-
-  function handleAddScore() {
+  const handleAddScore = () => {
     const val = parseInt(newScore, 10);
     if (isNaN(val) || val < 0 || val > cert.maxScore) return;
     addScore(cert.id, { date: newDate, score: val });
     setNewScore("");
-  }
+  };
 
   const scores = entry.scoreLog ?? [];
   const trend =
@@ -91,24 +93,22 @@ export default function CertDetailPage({
 
   return (
     <div className="max-w-2xl">
-      <div className="flex items-center justify-between mb-6">
-        <Link href="/" className="text-sm text-gray-500 hover:text-gray-300">
-          ← Back to Roadmap
+      <div className="flex items-center justify-between mb-6 text-[11px] uppercase tracking-[0.16em]">
+        <Link href="/" className="text-dim hover:text-ink transition-colors">
+          ◂ Mission Control
         </Link>
-        <Link
-          href={`/cert/${cert.id}/flashcards`}
-          className="text-sm px-3 py-1.5 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors"
-        >
-          🃏 Flashcards
+        <Link href={`/cert/${cert.id}/flashcards`} className="btn !text-[10px] !py-1.5">
+          ⬢ Flashcards
         </Link>
       </div>
 
-      <div className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+      <div className="panel panel-accent relative px-5 py-5 mb-8" style={{ "--accent": VENDOR_ACCENT[cert.vendor] } as React.CSSProperties}>
+        <span className="tick tick-tr" />
+        <p className="eyebrow mb-1.5">
           {cert.vendor} {cert.examCode && `· ${cert.examCode}`}
         </p>
-        <h1 className="text-3xl font-bold text-white">{cert.name}</h1>
-        <p className="text-gray-400 mt-2">{cert.description}</p>
+        <h1 className="font-display text-2xl text-ink leading-tight">{cert.name}</h1>
+        <p className="text-[13px] text-dim mt-2.5 leading-relaxed">{cert.description}</p>
       </div>
 
       {/* Study timer */}
@@ -121,17 +121,13 @@ export default function CertDetailPage({
 
       {/* Status */}
       <section className="mb-8">
-        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Status</h2>
+        <h2 className="eyebrow mb-3">MISSION STATUS</h2>
         <div className="flex gap-2 flex-wrap">
           {STATUS_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => updateEntry(cert.id, { status: opt.value })}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                entry.status === opt.value
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
+              className={`btn ${entry.status === opt.value ? "btn-active" : ""}`}
             >
               {opt.label}
             </button>
@@ -139,22 +135,19 @@ export default function CertDetailPage({
         </div>
 
         {entry.status !== "not-started" && (
-          <div className="mt-3 flex items-center gap-3">
-            <div className="flex-1 bg-gray-800 rounded-full h-2">
-              <div
-                className="bg-blue-500 h-2 rounded-full transition-all"
-                style={{ width: `${rate}%` }}
-              />
+          <div className="mt-4 flex items-center gap-3">
+            <div className="bar flex-1">
+              <i style={{ width: `${rate}%` }} />
             </div>
-            <span className="text-sm text-gray-400">{rate}%</span>
+            <span className="text-sm text-cyan font-medium tabular-nums">{rate}%</span>
           </div>
         )}
 
         {expiry && (
-          <div className={`mt-3 text-sm ${expiry.color}`}>
-            Cert valid until {expiry.date}
-            <span className="text-gray-500 ml-2 text-xs">
-              ({expiry.daysLeft > 0 ? `${expiry.daysLeft} days remaining` : "expired"})
+          <div className={`mt-3 text-[12px] uppercase tracking-wide ${expiry.color}`}>
+            CERT VALID UNTIL {expiry.date}
+            <span className="text-faint ml-2">
+              ({expiry.daysLeft > 0 ? `${expiry.daysLeft}D REMAINING` : "EXPIRED"})
             </span>
           </div>
         )}
@@ -162,33 +155,33 @@ export default function CertDetailPage({
 
       {/* Topics */}
       <section className="mb-8">
-        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-1">
-          Exam Topics
+        <h2 className="eyebrow mb-1">
+          SYSTEM CHECKS // {cert.topics.length} SUBSYSTEMS
         </h2>
-        <p className="text-xs text-gray-500 mb-3">
-          Flag topics you&apos;re struggling with using the ⚑ button.
+        <p className="text-[11px] text-faint mb-3 uppercase tracking-wide">
+          Flag subsystems you&apos;re struggling with using the ⚑ button.
         </p>
-        <ul className="space-y-2">
+        <ul className="panel divide-y divide-line">
           {cert.topics.map((topic) => {
             const done = !!entry.topicProgress[topic];
             const weak = !!entry.weakTopics?.[topic];
             return (
-              <li key={topic} className="flex items-center gap-3">
+              <li key={topic} className="flex items-center gap-3 px-4 py-2.5">
                 <input
                   type="checkbox"
                   id={topic}
                   checked={done}
                   onChange={(e) => setTopicDone(cert.id, topic, e.target.checked)}
-                  className="w-4 h-4 rounded accent-blue-500 cursor-pointer shrink-0"
+                  className="w-4 h-4 accent-cyan cursor-pointer shrink-0"
                 />
                 <label
                   htmlFor={topic}
-                  className={`flex-1 text-sm cursor-pointer select-none ${
+                  className={`flex-1 text-[13px] cursor-pointer select-none ${
                     done
-                      ? "line-through text-gray-500"
+                      ? "line-through text-faint"
                       : weak
-                      ? "text-orange-300"
-                      : "text-gray-200"
+                      ? "text-amber"
+                      : "text-ink"
                   }`}
                 >
                   {topic}
@@ -197,7 +190,7 @@ export default function CertDetailPage({
                   onClick={() => toggleWeakTopic(cert.id, topic)}
                   title={weak ? "Remove weak flag" : "Flag as weak area"}
                   className={`text-sm transition-colors shrink-0 ${
-                    weak ? "text-orange-400" : "text-gray-600 hover:text-gray-400"
+                    weak ? "text-amber" : "text-faint hover:text-dim"
                   }`}
                 >
                   ⚑
@@ -207,8 +200,8 @@ export default function CertDetailPage({
           })}
         </ul>
         {Object.values(entry.weakTopics ?? {}).some(Boolean) && (
-          <p className="mt-3 text-xs text-orange-400/70">
-            {Object.values(entry.weakTopics).filter(Boolean).length} weak area
+          <p className="mt-3 text-[11px] uppercase tracking-wide text-amber/80">
+            ⚑ {Object.values(entry.weakTopics).filter(Boolean).length} weak area
             {Object.values(entry.weakTopics).filter(Boolean).length !== 1 ? "s" : ""} flagged
           </p>
         )}
@@ -217,43 +210,41 @@ export default function CertDetailPage({
       {/* Practice scores */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">
-            Practice Scores
-          </h2>
+          <h2 className="eyebrow">PRACTICE TELEMETRY</h2>
           {trend !== null && (
-            <span className={`text-xs font-medium ${trend >= 0 ? "text-green-400" : "text-red-400"}`}>
-              {trend >= 0 ? "+" : ""}{trend} pts from first attempt
+            <span className={`text-[11px] uppercase tracking-wide font-medium ${trend >= 0 ? "text-go" : "text-alert"}`}>
+              {trend >= 0 ? "▴ +" : "▾ "}{trend} PTS FROM FIRST RUN
             </span>
           )}
         </div>
 
         <table className="w-full text-sm mb-4">
           <thead>
-            <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
-              <th className="text-left pb-2">Date</th>
-              <th className="text-left pb-2">Score</th>
+            <tr className="eyebrow border-b border-line">
+              <th className="text-left pb-2 font-normal">Date</th>
+              <th className="text-left pb-2 font-normal">Score</th>
               <th className="pb-2" />
             </tr>
           </thead>
           <tbody>
             {/* Pass threshold row */}
-            <tr className="border-b border-dashed border-red-900/60">
-              <td className="py-1.5 text-xs text-red-400/70 italic">Pass threshold</td>
-              <td className="py-1.5 text-xs font-semibold text-red-400/70">
+            <tr className="border-b border-dashed border-alert/40">
+              <td className="py-1.5 text-[11px] text-alert/70 uppercase tracking-wide">Pass threshold</td>
+              <td className="py-1.5 text-[11px] font-semibold text-alert/70 tabular-nums">
                 {cert.passingScore} / {cert.maxScore}
               </td>
               <td />
             </tr>
             {scores.map((s, i) => (
-              <tr key={i} className="border-b border-gray-800/50">
-                <td className="py-2 text-gray-400">{s.date}</td>
-                <td className={`py-2 font-semibold ${scoreColor(s.score, cert.passingScore, cert.maxScore)}`}>
+              <tr key={i} className="border-b border-line/50">
+                <td className="py-2 text-dim tabular-nums">{s.date}</td>
+                <td className={`py-2 font-semibold tabular-nums ${scoreColor(s.score, cert.passingScore, cert.maxScore)}`}>
                   {s.score} / {cert.maxScore}
                 </td>
                 <td className="py-2 text-right">
                   <button
                     onClick={() => removeScore(cert.id, i)}
-                    className="text-gray-600 hover:text-red-400 transition-colors text-xs"
+                    className="text-faint hover:text-alert transition-colors text-[11px] uppercase tracking-wide"
                   >
                     remove
                   </button>
@@ -268,7 +259,7 @@ export default function CertDetailPage({
             type="date"
             value={newDate}
             onChange={(e) => setNewDate(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
+            className="field"
           />
           <input
             type="number"
@@ -278,28 +269,22 @@ export default function CertDetailPage({
             onChange={(e) => setNewScore(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddScore()}
             placeholder={`Score / ${cert.maxScore}`}
-            className="w-32 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            className="field w-32"
           />
-          <button
-            onClick={handleAddScore}
-            disabled={!newScore}
-            className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            Log score
+          <button onClick={handleAddScore} disabled={!newScore} className="btn btn-active">
+            ▴ Log score
           </button>
         </div>
       </section>
 
       {/* Target date */}
       <section className="mb-8">
-        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
-          Target Exam Date
-        </h2>
+        <h2 className="eyebrow mb-3">LAUNCH WINDOW // TARGET DATE</h2>
         <input
           type="date"
           value={entry.targetDate ?? ""}
           onChange={(e) => updateEntry(cert.id, { targetDate: e.target.value })}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
+          className="field"
         />
       </section>
 
@@ -313,9 +298,7 @@ export default function CertDetailPage({
 
       {/* Resources */}
       <section>
-        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
-          Study Resources
-        </h2>
+        <h2 className="eyebrow mb-3">SUPPLY DEPOT // STUDY RESOURCES</h2>
         <ul className="space-y-2">
           {cert.resources.map((r) => (
             <li key={r.url}>
@@ -323,17 +306,13 @@ export default function CertDetailPage({
                 href={r.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors group"
+                className="panel flex items-center gap-3 p-3 hover:border-cyan-dim hover:-translate-y-0.5 transition-all group"
               >
-                <span className="text-lg">{RESOURCE_ICONS[r.type]}</span>
-                <span className="flex-1 text-sm text-gray-200 group-hover:text-white">
+                <span className="text-cyan text-base">{RESOURCE_ICONS[r.type]}</span>
+                <span className="flex-1 text-[13px] text-dim group-hover:text-ink transition-colors">
                   {r.title}
                 </span>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full ${
-                    r.free ? "bg-green-600 text-white" : "bg-gray-600 text-white"
-                  }`}
-                >
+                <span className={`badge ${r.free ? "text-go" : "text-faint"}`}>
                   {r.free ? "Free" : "Paid"}
                 </span>
               </a>

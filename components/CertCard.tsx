@@ -3,30 +3,26 @@
 import Link from "next/link";
 import type { Cert } from "@/data/certs";
 import type { CertEntry } from "@/hooks/useCertProgress";
+import { VENDOR_ACCENT } from "@/lib/theme";
+import ReadinessRing from "@/components/ReadinessRing";
 
-const STATUS_STYLES: Record<CertEntry["status"], string> = {
-  "not-started": "bg-gray-700 text-gray-300",
-  "in-progress": "bg-blue-900 text-blue-300",
-  passed: "bg-green-900 text-green-300",
+const STATUS_BADGE: Record<CertEntry["status"], { cls: string; label: string }> = {
+  "not-started": { cls: "text-faint", label: "STANDBY" },
+  "in-progress": { cls: "text-amber", label: "TRAINING" },
+  passed: { cls: "text-go", label: "GO" },
 };
 
-const STATUS_LABELS: Record<CertEntry["status"], string> = {
-  "not-started": "Not Started",
-  "in-progress": "In Progress",
-  passed: "Passed",
-};
-
-const VENDOR_COLORS: Record<Cert["vendor"], string> = {
-  CompTIA: "text-red-400",
-  Cisco: "text-blue-400",
-  AWS: "text-orange-400",
+const VENDOR_TEXT: Record<Cert["vendor"], string> = {
+  CompTIA: "text-amber",
+  Cisco: "text-cyan",
+  AWS: "text-violet",
 };
 
 type Props = {
   cert: Cert;
   entry: CertEntry;
   completionRate: number;
-  locked: boolean;
+  prereqsMet: boolean;
   studyMinutes: number;
 };
 
@@ -49,89 +45,92 @@ function expiryInfo(passedDate: string, validityYears: number) {
   expiry.setFullYear(expiry.getFullYear() + validityYears);
   const daysLeft = daysUntil(expiry.toISOString().slice(0, 10));
   const color =
-    daysLeft < 90 ? "text-red-400" : daysLeft < 365 ? "text-yellow-400" : "text-green-400";
+    daysLeft < 90 ? "text-alert" : daysLeft < 365 ? "text-amber" : "text-go";
   const label =
     daysLeft < 0
-      ? "Cert expired"
-      : `Renew by ${expiry.toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
+      ? "CERT EXPIRED"
+      : `RENEW BY ${expiry.toLocaleDateString("en-US", { month: "short", year: "numeric" }).toUpperCase()}`;
   return { color, label };
 }
 
-export default function CertCard({ cert, entry, completionRate, locked, studyMinutes }: Props) {
+export default function CertCard({ cert, entry, completionRate, prereqsMet, studyMinutes }: Props) {
   const days =
-    entry.targetDate && entry.status !== "passed"
-      ? daysUntil(entry.targetDate)
-      : null;
+    entry.targetDate && entry.status !== "passed" ? daysUntil(entry.targetDate) : null;
   const expiry =
     entry.status === "passed" && entry.passedDate
       ? expiryInfo(entry.passedDate, cert.validityYears ?? 3)
       : null;
 
+  const status = STATUS_BADGE[entry.status];
+  const accent = VENDOR_ACCENT[cert.vendor];
+  const readiness = entry.status === "passed" ? 100 : completionRate;
+
   return (
     <Link
-      href={locked ? "#" : `/cert/${cert.id}`}
-      className={`block rounded-xl border p-5 transition-all ${
-        locked
-          ? "border-gray-800 opacity-50 cursor-not-allowed"
-          : "border-gray-700 hover:border-gray-500 hover:bg-gray-900"
-      }`}
+      href={`/cert/${cert.id}`}
+      className="panel panel-accent group block p-5 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-dim hover:shadow-[0_18px_50px_-24px_rgba(57,224,208,0.5)]"
+      style={{ "--accent": accent } as React.CSSProperties}
     >
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${VENDOR_COLORS[cert.vendor]}`}>
-            {cert.vendor}
-          </p>
-          <h2 className="text-lg font-bold text-white">{cert.name}</h2>
+        <div className="min-w-0">
+          <p className={`eyebrow ${VENDOR_TEXT[cert.vendor]}`}>{cert.vendor}</p>
+          <h2 className="font-display text-[0.95rem] text-ink mt-1.5 leading-snug">{cert.name}</h2>
           {cert.examCode && (
-            <p className="text-xs text-gray-500 mt-0.5">{cert.examCode}</p>
+            <p className="text-[11px] text-faint mt-1 truncate">{cert.examCode}</p>
           )}
-          <p className="text-sm text-gray-400 mt-2 line-clamp-2">{cert.description}</p>
         </div>
-        <span
-          className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_STYLES[entry.status]}`}
-        >
-          {STATUS_LABELS[entry.status]}
-        </span>
+        <span className={`badge shrink-0 ${status.cls}`}>{status.label}</span>
       </div>
 
+      <p className="text-[12px] text-dim mt-2.5 line-clamp-2 leading-relaxed">
+        {cert.description}
+      </p>
+
       {entry.status !== "not-started" && (
-        <div className="mt-4">
-          <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>Topics completed</span>
-            <span>{completionRate}%</span>
-          </div>
-          <div className="w-full bg-gray-800 rounded-full h-1.5">
-            <div
-              className="bg-blue-500 h-1.5 rounded-full transition-all"
-              style={{ width: `${completionRate}%` }}
-            />
+        <div className="flex items-center gap-4 mt-4">
+          <ReadinessRing value={readiness} size={76} stroke={5} accent={accent} />
+          <div className="flex-1 space-y-2.5">
+            <div>
+              <div className="flex justify-between eyebrow mb-1">
+                <span>System checks</span>
+                <span className="text-dim">{completionRate}%</span>
+              </div>
+              <div className="bar">
+                <i style={{ width: `${completionRate}%`, "--accent": accent } as React.CSSProperties} />
+              </div>
+            </div>
+            {studyMinutes > 0 && (
+              <p className="text-[11px] text-faint tracking-wide">
+                ◷ {formatMinutes(studyMinutes)} logged
+              </p>
+            )}
           </div>
         </div>
-      )}
-
-      {studyMinutes > 0 && (
-        <p className="mt-3 text-xs text-gray-500">
-          ⏱ {formatMinutes(studyMinutes)} studied
-        </p>
       )}
 
       {days !== null && (
-        <p className={`mt-3 text-xs font-medium ${days < 0 ? "text-red-400" : days <= 7 ? "text-yellow-400" : "text-gray-400"}`}>
+        <p
+          className={`mt-3.5 text-[11px] uppercase tracking-[0.12em] ${
+            days < 0 ? "text-alert" : days <= 7 ? "text-amber" : "text-dim"
+          }`}
+        >
           {days < 0
-            ? `Exam date passed ${Math.abs(days)}d ago`
+            ? `▾ Launch window missed ${Math.abs(days)}d ago`
             : days === 0
-            ? "Exam today!"
-            : `${days} day${days === 1 ? "" : "s"} until exam`}
+            ? "▴ Launch today"
+            : `▴ T-minus ${days} day${days === 1 ? "" : "s"} to launch`}
         </p>
       )}
 
       {expiry && (
-        <p className={`mt-3 text-xs font-medium ${expiry.color}`}>{expiry.label}</p>
+        <p className={`mt-3.5 text-[11px] uppercase tracking-[0.12em] ${expiry.color}`}>
+          {expiry.label}
+        </p>
       )}
 
-      {locked && (
-        <p className="mt-3 text-xs text-gray-500">
-          Requires:{" "}
+      {!prereqsMet && cert.prerequisites.length > 0 && (
+        <p className="mt-3.5 text-[11px] uppercase tracking-[0.14em] text-faint flex items-center gap-1.5">
+          <span>◇ SUGGESTED PREP ·</span>
           {cert.prerequisites
             .map((id) => id.replace("comptia-", "").replace("cisco-", "").replace("aws-", ""))
             .join(", ")}

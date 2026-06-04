@@ -41,6 +41,8 @@ export default function StudyTimer({ totalMinutes, onSessionComplete }: Props) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
+    // elapsed is intentionally read once on start; including it would reset the interval each tick
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
 
   function handleStop() {
@@ -59,41 +61,35 @@ export default function StudyTimer({ totalMinutes, onSessionComplete }: Props) {
   }
 
   return (
-    <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-800/60 border border-gray-700">
+    <div className="panel panel-accent flex items-center gap-4 p-4" style={{ "--accent": running ? "var(--color-go)" : "var(--color-cyan)" } as React.CSSProperties}>
       <div className="flex-1">
-        <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Study Timer</p>
-        <p className={`text-2xl font-mono font-bold ${running ? "text-white" : "text-gray-400"}`}>
+        <p className="eyebrow mb-1 flex items-center gap-2">
+          {running && <span className="w-1.5 h-1.5 rounded-full bg-go mc-dot" />}
+          MISSION CLOCK
+        </p>
+        <p className={`text-3xl font-display tabular-nums ${running ? "text-go" : "text-dim"}`} style={running ? { textShadow: "0 0 12px rgba(127,255,176,.4)" } : undefined}>
           {formatElapsed(elapsed)}
         </p>
       </div>
 
-      <div className="text-right">
-        <p className="text-xs text-gray-500 mb-0.5">Total studied</p>
-        <p className="text-sm font-semibold text-gray-300">
+      <div className="text-right border-r border-line pr-4">
+        <p className="eyebrow mb-1">ON CONSOLE</p>
+        <p className="text-sm font-medium text-ink">
           {totalMinutes > 0 ? formatTotal(totalMinutes) : "—"}
         </p>
       </div>
 
       <div className="flex gap-2">
         {!running ? (
-          <button
-            onClick={() => setRunning(true)}
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
-          >
-            {elapsed > 0 ? "Resume" : "Start"}
+          <button onClick={() => setRunning(true)} className="btn btn-active">
+            {elapsed > 0 ? "▸ Resume" : "▸ Start"}
           </button>
         ) : (
           <>
-            <button
-              onClick={handleStop}
-              className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition-colors"
-            >
-              Log
+            <button onClick={handleStop} className="btn btn-go">
+              ■ Log
             </button>
-            <button
-              onClick={handleDiscard}
-              className="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm transition-colors"
-            >
+            <button onClick={handleDiscard} className="btn">
               Discard
             </button>
           </>
